@@ -3,6 +3,7 @@
 ![logo](assets/pdf-maker.svg)
 
 [![Build Status](https://travis-ci.org/rocketbase-io/pdfmaker.svg?branch=master)](https://travis-ci.org/rocketbase-io/pdfmaker)
+[![Docker-Hub](https://images.microbadger.com/badges/version/rocketbaseio/pdfmaker.svg)](https://cloud.docker.com/repository/docker/rocketbaseio/pdfmaker)
 
 docker service of [pdfmake](http://pdfmake.org/) - with pdf merge feature by use of [node-pdftk](https://www.npmjs.com/package/node-pdftk).
 
