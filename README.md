@@ -18,7 +18,7 @@ There are two api-endpoints:
 # usage
 
 I've you run it locally the host needs pdfpk installed.
-__WARNING__: for mac users [take a look here](//https://github.com/jjwilly16/node-pdftk/issues/3)
+__WARNING__: for mac users [take a look here](//github.com/jjwilly16/node-pdftk/issues/3)
 
 ```
 npm run build && npm run start
