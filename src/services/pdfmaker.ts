@@ -7,6 +7,12 @@ const fonts = {
     bold: 'resources/fonts/Roboto-Medium.ttf',
     italics: 'resources/fonts/Roboto-Italic.ttf',
     bolditalics: 'resources/fonts/Roboto-MediumItalic.ttf'
+  },
+  OpenSans: {
+    normal: 'resources/fonts/OpenSans-Regular.ttf',
+    bold: 'resources/fonts/OpenSans-Bold.ttf',
+    italics: 'resources/fonts/OpenSans-Italic.ttf',
+    bolditalics: 'resources/fonts/OpenSans-BoldItalic.ttf'
   }
 };
 //PDFMake stuff
