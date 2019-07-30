@@ -1,8 +1,11 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import {services} from "./decorators";
 import * as middleware from "./middleware";
 
 import "./services"
+
 
 export const app = express();
 

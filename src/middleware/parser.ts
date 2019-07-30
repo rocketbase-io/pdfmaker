@@ -1,4 +1,7 @@
 import parser from "body-parser";
 
-export const parserURlencodedMiddleware = parser.urlencoded({extended: true});
-export const parserJsonMiddleware = parser.json();
+const limit = process.env.DOCUMENT_SIZE_LIMIT;
+
+export const parserURlencodedMiddleware = parser.urlencoded({extended: true, limit});
+export const parserJsonMiddleware = parser.json({limit});
+
