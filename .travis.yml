@@ -9,15 +9,15 @@ env:
     - GOARCH=amd64
 
 script:
-  - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi`
-  - docker build -t $REPO:$TAG -f Dockerfile .
+  - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then echo "latest"; else echo $TRAVIS_BRANCH; fi`
+  - docker build -t "$REPO:$TAG" -f Dockerfile .
 
 after_success:
   - docker login -u $DOCKER_USER -p $DOCKER_PASS
   - if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then
-    docker tag $REPO:$TAG $REPO:$TRAVIS_BUILD_NUMBER;
-    docker push $REPO:$TRAVIS_BUILD_NUMBER;
+    docker tag "$REPO:$TAG" "$REPO:$TRAVIS_BUILD_NUMBER";
+    docker push "$REPO:$TRAVIS_BUILD_NUMBER";
     fi
-  - docker push $REPO:$TAG
+  - docker push "$REPO:$TAG"
 notifications:
   email: false
