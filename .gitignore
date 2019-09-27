@@ -59,3 +59,4 @@ typings/
 
 # intellij
 *.iml
+dist
