@@ -8,6 +8,12 @@ const fonts = {
     italics: 'resources/fonts/Roboto-Italic.ttf',
     bolditalics: 'resources/fonts/Roboto-MediumItalic.ttf'
   },
+  Exo: {
+    normal: 'resources/fonts/Exo-Medium.ttf',
+    bold: 'resources/fonts/Exo-Bold.ttf',
+    italics: 'resources/fonts/Exo-Light.ttf',
+    bolditalics: 'resources/fonts/Exo-ExtraLight.ttf'
+  },
   OpenSans: {
     normal: 'resources/fonts/OpenSans-Regular.ttf',
     bold: 'resources/fonts/OpenSans-Bold.ttf',
