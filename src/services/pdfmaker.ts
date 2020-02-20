@@ -1,5 +1,7 @@
-import {NextFunction, Request, Response} from "express";
-import {Post, Service} from "../decorators";
+import {NextFunction, Request, Response} from 'express';
+import {Post, Service} from '../decorators';
+import {promisify} from 'util';
+import {get} from 'https';
 
 const fonts = {
   Roboto: {
@@ -28,9 +30,39 @@ let printer = new PdfPrinter(fonts);
 //Concat pdfs
 const pdftk = require('node-pdftk');
 
+async function replaceImages(options: any) {
+  if (typeof options !== 'object' || options === null) return;
+  if (Array.isArray(options)) {
+    for (let current of options) {
+      await replaceImages(current);
+    }
+  } else {
+    for (let key of Object.keys(options)) {
+      if (key === 'image') {
+        const url = options[key];
+        if (url.startsWith('http:')) {
+          throw new Error('Image at HTTP urls are not supported! Please use HTTPS.');
+        } else if (url.startsWith('https:')) {
+          options[key] = await new Promise((resolve, reject) => {
+            get(url, res => {
+              if (res.statusCode !== 200) reject(new Error(`HTTP ${res.statusCode} on: GET ${url}`));
+              const chunks: Uint8Array[] = [];
+
+              res.on('data', chunks.push.bind(chunks));
+              res.on('end', () => resolve(Buffer.concat(chunks)));
+            }).on('error', reject);
+          });
+        }
+      } else {
+        await replaceImages(options[key]);
+      }
+    }
+  }
+}
+
+
 @Service("/")
 export class PdfService {
-
   @Post("/file")
   public async file(req: Request, res: Response, next: NextFunction) {
 
@@ -64,25 +96,28 @@ export class PdfService {
     res.end(content, 'binary');
   }
 
+
   /*
   Concat single PDFs
    */
-  public generatePdf(options: any): Promise<Buffer> {
-    return new Promise(((resolve, reject) => {
+  public async generatePdf(options: any): Promise<Buffer> {
+    await replaceImages(options);
+    if (options.ensureIdNotBreak) {
+      const id = options.ensureIdNotBreak;
+      options.pageBreakBefore = (currentNode: any) => currentNode.id === id && currentNode.pageNumbers.length > 1;
+      delete options.ensureIdNotBreak;
+    }
+    return await new Promise((resolve, reject) => {
       try {
-
         const doc = printer.createPdfKitDocument(options);
         const chunks: Uint8Array[] = [];
 
         doc.on('data', chunks.push.bind(chunks));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.end();
-
       } catch (err) {
         reject(err);
       }
-    }))
+    });
   }
-
-
 }
