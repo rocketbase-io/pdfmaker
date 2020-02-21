@@ -69,6 +69,26 @@ async function replaceImages(options: any, directory: string) {
   }
 }
 
+function renderTemplate(template: any, variables: Record<string, any>): any {
+  if (typeof template === 'string') {
+    let result = template;
+    Object.keys(variables).forEach(key => result = result.replace(RegExp('\\$' + key + '\\$', 'g'), variables[key]));
+    return result;
+  }
+
+  if (typeof template !== 'object' || template === null) {
+    return template;
+  }
+
+  if (Array.isArray(template)) {
+    return template.map(value => renderTemplate(value, variables));
+  }
+
+  const result = Object.assign({}, template);
+  Object.keys(result).forEach(key => result[key] = renderTemplate(result[key], variables));
+  return result;
+}
+
 @Service('/')
 export class PdfService {
   @Post('/file')
@@ -133,6 +153,11 @@ export class PdfService {
       const id = options.ensureIdNotBreak;
       options.pageBreakBefore = (currentNode: any) => currentNode.id === id && currentNode.pageNumbers.length > 1;
       delete options.ensureIdNotBreak;
+    }
+    if (options.pageNumber) {
+      const template = options.pageNumber;
+      options.footer = (currentPage: number, pageCount: number) => renderTemplate(template, {currentPage, pageCount});
+      delete options.pageNumber;
     }
     const doc: Readable & { end(): void } = printer.createPdfKitDocument(options);
     doc.pipe(output, {end: true});
