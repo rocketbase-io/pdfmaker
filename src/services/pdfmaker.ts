@@ -1,38 +1,13 @@
 import {NextFunction, Request, Response} from 'express';
 import {Post, Service} from '../decorators';
-import {get} from 'https';
-import {join} from 'path';
 import {createReadStream, createWriteStream} from 'fs';
+import {Readable, Writable} from 'stream';
+import {downloadIntoTemporaryFile, temporaryDirectory, temporaryFile} from '../utils';
 // @ts-ignore
 import pdftk from 'node-pdftk';
 // @ts-ignore
 import PdfPrinter from 'pdfmake';
-import {Readable, Writable} from 'stream';
-import {temporaryDirectory, temporaryFile} from '../utils';
-
-const fonts = {
-  Roboto: {
-    normal: 'resources/fonts/Roboto-Regular.ttf',
-    bold: 'resources/fonts/Roboto-Medium.ttf',
-    italics: 'resources/fonts/Roboto-Italic.ttf',
-    bolditalics: 'resources/fonts/Roboto-MediumItalic.ttf'
-  },
-  Exo: {
-    normal: 'resources/fonts/Exo-Medium.ttf',
-    bold: 'resources/fonts/Exo-Bold.ttf',
-    italics: 'resources/fonts/Exo-Light.ttf',
-    bolditalics: 'resources/fonts/Exo-ExtraLight.ttf'
-  },
-  OpenSans: {
-    normal: 'resources/fonts/OpenSans-Regular.ttf',
-    bold: 'resources/fonts/OpenSans-Bold.ttf',
-    italics: 'resources/fonts/OpenSans-Italic.ttf',
-    bolditalics: 'resources/fonts/OpenSans-BoldItalic.ttf'
-  }
-};
-
-// PDFMake stuff
-const printer = new PdfPrinter(fonts);
+import {defaultFonts, Fonts, resolveFont} from '../fonts';
 
 async function replaceImages(options: any, directory: string) {
   if (typeof options !== 'object' || options === null) return;
@@ -43,25 +18,7 @@ async function replaceImages(options: any, directory: string) {
   } else {
     for (let key of Object.keys(options)) {
       if (key === 'image') {
-        const url = options[key];
-        if (url.startsWith('http:')) {
-          throw new Error('Image at HTTP urls are not supported! Please use HTTPS.');
-        } else if (url.startsWith('https:')) {
-          options[key] = await new Promise((resolve, reject) => {
-            get(url, res => {
-              if (res.statusCode !== 200) {
-                reject(new Error(`Failed to download image ${res.statusCode} ${res.statusMessage} from: ${url}`));
-                return;
-              }
-              const filename = Math.random().toString();
-              const filePath = join(directory, filename);
-              const fileStream = createWriteStream(filePath);
-              res.pipe(fileStream, {end: true});
-
-              fileStream.once('finish', () => resolve(filePath));
-            }).on('error', reject);
-          });
-        }
+        options[key] = await downloadIntoTemporaryFile(options[key], directory);
       } else {
         await replaceImages(options[key], directory);
       }
@@ -92,12 +49,13 @@ function renderTemplate(template: any, variables: Record<string, any>): any {
 @Service('/')
 export class PdfService {
   @Post('/file')
-  public async file(req: Request, res: Response, next: NextFunction) {
+  public async file(req: Request, res: Response) {
     try {
-      this.pdfResponse(res, req.query.filename);
-      await this.generatePdf(req.body, res);
+      await this.generatePdf(req.body, res, () => this.pdfResponse(res, req.query.filename));
     } catch (err) {
-      next(err);
+      res
+        .status(400)
+        .send({message: err.message});
     }
   }
 
@@ -113,7 +71,8 @@ export class PdfService {
         const {path, removeCallback} = await temporaryFile();
         cleanup.push(removeCallback);
         const fileStream = createWriteStream(path);
-        await this.generatePdf(configuration, fileStream);
+        await this.generatePdf(configuration, fileStream, () => {
+        });
         pdfFiles.push(path);
       }
 
@@ -146,7 +105,7 @@ export class PdfService {
   /*
   Concat single PDFs
    */
-  public async generatePdf(options: any, output: Writable): Promise<void> {
+  public async generatePdf(options: any, output: Writable, beforeWrite: () => void): Promise<void> {
     const {path: imageDirectory, removeCallback: cleanImages} = await temporaryDirectory();
     await replaceImages(options, imageDirectory);
     if (options.ensureIdNotBreak) {
@@ -159,7 +118,17 @@ export class PdfService {
       options.footer = (currentPage: number, pageCount: number) => renderTemplate(template, {currentPage, pageCount});
       delete options.pageNumber;
     }
+    let fonts: Fonts = defaultFonts;
+    if (options.fonts) {
+      fonts = options.fonts;
+      for (const fontName of Object.keys(fonts)) {
+        fonts[fontName] = await resolveFont(fonts[fontName], fontName);
+      }
+      delete options.fonts;
+    }
+    const printer = new PdfPrinter(fonts);
     const doc: Readable & { end(): void } = printer.createPdfKitDocument(options);
+    beforeWrite();
     doc.pipe(output, {end: true});
     doc.once('end', () => cleanImages());
     doc.once('error', err => {
