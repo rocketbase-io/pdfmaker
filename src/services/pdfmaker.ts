@@ -1,8 +1,8 @@
-import {NextFunction, Request, Response} from 'express';
+import {Request, Response} from 'express';
 import {Post, Service} from '../decorators';
 import {createReadStream, createWriteStream} from 'fs';
 import {Readable, Writable} from 'stream';
-import {downloadIntoTemporaryFile, temporaryDirectory, temporaryFile} from '../utils';
+import {downloadIntoString, downloadIntoTemporaryFile, temporaryDirectory, temporaryFile} from '../utils';
 // @ts-ignore
 import pdftk from 'node-pdftk';
 // @ts-ignore
@@ -18,7 +18,12 @@ async function replaceImages(options: any, directory: string) {
   } else {
     for (let key of Object.keys(options)) {
       if (key === 'image') {
-        options[key] = await downloadIntoTemporaryFile(options[key], directory);
+        options.image = await downloadIntoTemporaryFile(options.image, directory);
+      } else if (key === 'svg') {
+        const svg: string = options.svg;
+        if (!svg.startsWith('<svg ')) {
+          options.svg = await downloadIntoString(svg);
+        }
       } else {
         await replaceImages(options[key], directory);
       }
@@ -63,7 +68,7 @@ export class PdfService {
   For a single PDF
    */
   @Post('/files')
-  public async files(req: Request, res: Response, next: NextFunction) {
+  public async files(req: Request, res: Response) {
     const cleanup: (() => void)[] = [];
     try {
       const pdfFiles: string[] = [];
@@ -90,7 +95,9 @@ export class PdfService {
         .once('error', () => removeCallback());
     } catch (err) {
       cleanup.forEach(value => value());
-      next(err);
+      res
+        .status(400)
+        .send({message: err.message});
     }
   }
 
@@ -108,11 +115,6 @@ export class PdfService {
   public async generatePdf(options: any, output: Writable, beforeWrite: () => void): Promise<void> {
     const {path: imageDirectory, removeCallback: cleanImages} = await temporaryDirectory();
     await replaceImages(options, imageDirectory);
-    if (options.ensureIdNotBreak) {
-      const id = options.ensureIdNotBreak;
-      options.pageBreakBefore = (currentNode: any) => currentNode.id === id && currentNode.pageNumbers.length > 1;
-      delete options.ensureIdNotBreak;
-    }
     if (options.pageNumber) {
       const template = options.pageNumber;
       options.footer = (currentPage: number, pageCount: number) => renderTemplate(template, {currentPage, pageCount});

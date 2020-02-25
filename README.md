@@ -18,26 +18,8 @@ There are two api-endpoints:
 For documentation to the JSON objects which are describe the content of the PDFs, [look here at the pdfmake documentation](https://pdfmake.github.io/docs/).
 
 There are a few extra enhancements:
-## Make elements unbreakable
-When you want to ensure that a set of elements never break onto multiple pages you can use this property. Example:
-```json
-{
-  "content": [
-    {
-      "stack": [
-        {"id": "element", "some": "content"},
-        {"id": "element", "some": "content"},
-        {"id": "element", "some": "content"}
-      ]
-    }
-  ],
-  "ensureIdNotBreak": "element"
-}
-```
-Then you get a list of your elements, where each element is only on one page (as long as a element fits on a page).
 ## Image URLs
-Images with urls are supported. In the pdfmake documentation only data urls and local path are listed. But using image urls are recommended,
-because encoding all image as base64 and use data urls can cause into a 413 error. Example:
+Images with urls are supported. Example:
 
 ```json
 {
@@ -54,6 +36,27 @@ because encoding all image as base64 and use data urls can cause into a 413 erro
 **Note:** Only PNGs and JPGs are supported.
 
 **Note:** When the download of an image fails, the service will break with a 400 error.
+
+**Note:** Data URLs are not supported since they can cause a 413 error.
+
+## SVG URLs
+Downloading SVGs from urls is supported. It is nearly the same as Image URLs expect that it is also possible to give the SVG as string. Example:
+```json
+{
+  "content": [
+    {
+      "svg": "https://example.com/img/logo.svg"
+    },
+    {
+      "svg": "<svg width=\"300\" height=\"200\" viewBox=\"0 0 300 200\"><text x=\"0\" y=\"50\">Example Image</text></svg>"
+    }
+  ]
+}
+```
+
+**Note:** Only HTTPS urls are supported!
+
+**Note:** When the download of a SVG fails, the service will break with a 400 error.
 
 ## Page numbers
 To add a page number on at the footer of each page, you can use this property. This property accepts an element for pdfmake.
