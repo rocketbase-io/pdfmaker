@@ -31,8 +31,6 @@ Images with urls are supported. Example:
 }
 ```
 
-**Note:** Only HTTPS urls are supported!
-
 **Note:** Only PNGs and JPGs are supported.
 
 **Note:** When the download of an image fails, the service will break with a 400 error.
@@ -91,8 +89,6 @@ Example:
 }
 ```
 You can either add a Google Fonts service url or an object urls to the font.
-
-**Note:** Only HTTPS urls are supported!
 
 **Note:** Only TrueType Fonts (TTF) are supported.
 

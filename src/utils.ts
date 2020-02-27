@@ -1,8 +1,8 @@
 import {dir, file, fileSync} from 'tmp';
 import {createWriteStream, rmdirSync} from 'fs';
-import {get} from 'https';
+import {get as httpsGet} from 'https';
+import {ClientRequest, get as httpGet, IncomingMessage} from 'http';
 import {join} from 'path';
-import {IncomingMessage} from 'http';
 
 type TemporaryResult = { path: string, removeCallback: () => void };
 
@@ -63,19 +63,22 @@ export function downloadIntoString(url: string): Promise<string> {
 }
 
 function downloadFile(url: string): Promise<IncomingMessage> {
+  let requestFunction: (url: string, callback: (res: IncomingMessage) => void) => ClientRequest;
   if (url.startsWith('http:')) {
-    return Promise.reject(new Error('Downloads are only supported from HTTPS urls: ' + url));
+    requestFunction = httpGet;
   } else if (url.startsWith('https:')) {
-    return new Promise<IncomingMessage>((resolve, reject) => {
-      get(url, res => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`Failed to download file ${res.statusCode} ${res.statusMessage} from: ${url}`));
-          return;
-        }
-        resolve(res);
-      }).on('error', reject);
-    });
+    requestFunction = httpsGet;
   } else {
     return Promise.reject(new Error('Invalid download url: ' + url));
   }
+
+  return new Promise<IncomingMessage>((resolve, reject) => {
+    requestFunction(url, res => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Failed to download file ${res.statusCode} ${res.statusMessage} from: ${url}`));
+        return;
+      }
+      resolve(res);
+    }).on('error', reject);
+  });
 }

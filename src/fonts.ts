@@ -90,7 +90,7 @@ function createFontFromGoogleFonts(fontUrl: string): Promise<FontUrls> {
         createReadStream(zipFilePath)
           .pipe(ParseZip())
           .on('entry', (entry: Entry) => {
-            const regexResult = new RegExp(`^${fontName}-([a-zA-Z]+)\\.ttf$`).exec(entry.path);
+            const regexResult = /^.+-([a-zA-Z]+)\.ttf$/.exec(entry.path);
             if (regexResult) {
               const variant = regexResult[1];
               const variantIndex = fontVariants.indexOf(variant);
@@ -111,9 +111,10 @@ function createFontFromGoogleFonts(fontUrl: string): Promise<FontUrls> {
               entry.autodrain();
             }
           })
-          .once('end', () => {
+          .on('error', err => reject(new Error(`Could not unpack zip file for font ${fontName}: ${err.message}`)))
+          .on('close', () => {
             if (found < 4) {
-              reject(new Error('Font does not include all variants!'));
+              reject(new Error(`Font '${fontName}' does not include all variants: ${Object.keys(result).find(e => !(result as any)[e])}`));
             }
           });
       })
