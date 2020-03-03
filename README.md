@@ -17,7 +17,14 @@ There are two api-endpoints:
 
 For documentation to the JSON objects which are describe the content of the PDFs, [look here at the pdfmake documentation](https://pdfmake.github.io/docs/).
 
-There are a few extra enhancements:
+# Configurations and Enhancements
+In order to secure the services we only allow posting jsons. Therefor we added some extensions to the common pdfmake json-structure to provide similar features like page-numbers or custom-fonts.
+
+| Configuration       | Default | Description                                                  |
+| ------------------- | ------- | ------------------------------------------------------------ |
+| DOCUMENT_SIZE_LIMIT | 5mb     | for parsing we use body-parser that has a limit in parsing the jsons |
+
+
 ## Image URLs
 Images with urls are supported. Example:
 
