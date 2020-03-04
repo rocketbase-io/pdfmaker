@@ -20,9 +20,12 @@ For documentation to the JSON objects which are describe the content of the PDFs
 # Configurations and Enhancements
 In order to secure the services we only allow posting jsons. Therefor we added some extensions to the common pdfmake json-structure to provide similar features like page-numbers or custom-fonts.
 
-| Configuration       | Default | Description                                                  |
-| ------------------- | ------- | ------------------------------------------------------------ |
-| DOCUMENT_SIZE_LIMIT | 5mb     | for parsing we use body-parser that has a limit in parsing the jsons |
+| Configuration       | Default             | Description                                                          |
+| ------------------- | ------------------- | -------------------------------------------------------------------- |
+| DOCUMENT_SIZE_LIMIT | 5mb                 | for parsing we use body-parser that has a limit in parsing the jsons |
+| IMAGE_FALLBACK      | 1x1 transparent png | last fallback when all previous urls failed to download for images   |
+| SVG_FALLBACK        | 1x1 empty SVG       | last fallback when all previous urls failed to download for SVGs     |
+| MAX_DOWNLOAD_CACHE  | 2000                | the number of images, SVGs and fonts which are caches before deleted |
 
 
 ## Image URLs
@@ -38,11 +41,28 @@ Images with urls are supported. Example:
 }
 ```
 
+Also fallback URLs are supported. These urls can either be given per image or global on the object. Example:
+
+```json
+{
+  "content": [
+    {
+      "image": "https://example.com/img/logo.png",
+      "fallback": "https://example.com/img/logo-placeholder.png"
+    }
+  ],
+  "fallbackImage": "https://example.com/img/placeholder.png"
+}
+```
+
+In this case the service will first try to download the `logo.png`, if that fails the `logo-placeholder.png`, and if that fails too
+the `placeholder.png` file, and if that fails too the file from the environment variable `IMAGE_FALLBACK`.
+
 **Note:** Only PNGs and JPGs are supported.
 
-**Note:** When the download of an image fails, the service will break with a 400 error.
+**Note:** When the download of an image fails (and all fallbacks), the service will break with 400.
 
-**Note:** Data URLs are not supported since they can cause a 413 error.
+**Note:** Data URLs are also supported but not recommended since they can cause a 413 error.
 
 ## SVG URLs
 Downloading SVGs from urls is supported. It is nearly the same as Image URLs expect that it is also possible to give the SVG as string. Example:
@@ -59,9 +79,12 @@ Downloading SVGs from urls is supported. It is nearly the same as Image URLs exp
 }
 ```
 
+Fallbacks are supported just like for images, but ues the property `fallbackSvg` to define a global fallback for the document and the
+environment variables `SVG_FALLBACK`.
+
 **Note:** Only HTTPS urls are supported!
 
-**Note:** When the download of a SVG fails, the service will break with a 400 error.
+**Note:** When the download of a SVG fails (and all fallbacks), the service will break with 400.
 
 ## Page numbers
 To add a page number on at the footer of each page, you can use this property. This property accepts an element for pdfmake.

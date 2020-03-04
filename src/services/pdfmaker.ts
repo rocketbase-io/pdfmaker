@@ -2,30 +2,45 @@ import {Request, Response} from 'express';
 import {Post, Service} from '../decorators';
 import {createReadStream, createWriteStream} from 'fs';
 import {Readable, Writable} from 'stream';
-import {downloadIntoString, downloadIntoTemporaryFile, temporaryDirectory, temporaryFile} from '../utils';
+import {downloadCache, downloadIntoSvg, downloadIntoTemporaryFile, temporaryFile} from '../utils';
 // @ts-ignore
 import pdftk from 'node-pdftk';
 // @ts-ignore
 import PdfPrinter from 'pdfmake';
 import {defaultFonts, Fonts, resolveFont} from '../fonts';
+import {Cache} from '../cache';
 
-async function replaceImages(options: any, directory: string) {
+async function replaceImages(options: any, fallbackImage: string | null, fallbackSvg: string | null, cache: Cache<string, string>) {
   if (typeof options !== 'object' || options === null) return;
   if (Array.isArray(options)) {
     for (let current of options) {
-      await replaceImages(current, directory);
+      await replaceImages(current, fallbackImage, fallbackSvg, cache);
     }
   } else {
     for (let key of Object.keys(options)) {
       if (key === 'image') {
-        options.image = await downloadIntoTemporaryFile(options.image, directory);
+        const urls = [options.image];
+        if (options.fallback)
+          urls.push(options.fallback);
+        if (fallbackImage)
+          urls.push(fallbackImage);
+        // default a 1x1 transparent png
+        urls.push(process.env.IMAGE_FALLBACK ??
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+        options.image = await downloadIntoTemporaryFile(urls, cache);
       } else if (key === 'svg') {
         const svg: string = options.svg;
         if (!svg.startsWith('<svg ')) {
-          options.svg = await downloadIntoString(svg);
+          const urls = [svg];
+          if (options.fallback)
+            urls.push(options.fallback);
+          if (fallbackSvg)
+            urls.push(fallbackSvg);
+          urls.push(process.env.SVG_FALLBACK ?? '<svg width="1" height="1" viewBox="0 0 1 1"></svg>');
+          options.svg = await downloadIntoSvg(urls, cache);
         }
       } else {
-        await replaceImages(options[key], directory);
+        await replaceImages(options[key], fallbackImage, fallbackSvg, cache);
       }
     }
   }
@@ -113,8 +128,8 @@ export class PdfService {
   Concat single PDFs
    */
   public async generatePdf(options: any, output: Writable, beforeWrite: () => void): Promise<void> {
-    const {path: imageDirectory, removeCallback: cleanImages} = await temporaryDirectory();
-    await replaceImages(options, imageDirectory);
+    const imageCache = new Cache<string, string>(undefined, downloadCache, undefined, key => !key.startsWith('data:'));
+    await replaceImages(options, options.fallbackImage ?? null, options.fallbackSvg ?? null, imageCache);
     if (options.pageNumber) {
       const template = options.pageNumber;
       options.footer = (currentPage: number, pageCount: number) => renderTemplate(template, {currentPage, pageCount});
@@ -132,10 +147,10 @@ export class PdfService {
     const doc: Readable & { end(): void } = printer.createPdfKitDocument(options);
     beforeWrite();
     doc.pipe(output, {end: true});
-    doc.once('end', () => cleanImages());
+    doc.once('end', () => imageCache.transferIntoParent());
     doc.once('error', err => {
       console.error('error creating pdf', err);
-      cleanImages();
+      imageCache.transferIntoParent();
     });
     doc.end();
   }

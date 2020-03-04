@@ -1,22 +1,15 @@
-import {dir, file, fileSync} from 'tmp';
-import {createWriteStream, rmdirSync} from 'fs';
+import {file, fileSync} from 'tmp';
+import {createWriteStream, unlinkSync} from 'fs';
 import {get as httpsGet} from 'https';
 import {ClientRequest, get as httpGet, IncomingMessage} from 'http';
-import {join} from 'path';
+import {Cache} from './cache';
+import {Readable} from 'stream';
 
 type TemporaryResult = { path: string, removeCallback: () => void };
 
-export function temporaryDirectory(): Promise<TemporaryResult> {
-  return new Promise<TemporaryResult>((resolve, reject) => {
-    dir((err, name) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({path: name, removeCallback: () => rmdirSync(name, {recursive: true})});
-      }
-    });
-  });
-}
+export const downloadCache = new Cache<string, string>(parseInt(process.env.MAX_DOWNLOAD_CACHE ??
+  '2000'), undefined, (key, value) => unlinkSync(value), key => !key.startsWith('data:'));
+process.addListener('beforeExit', () => downloadCache.destroy());
 
 export function temporaryFile(): Promise<TemporaryResult> {
   return new Promise<TemporaryResult>((resolve, reject) => {
@@ -30,39 +23,54 @@ export function temporaryFile(): Promise<TemporaryResult> {
   });
 }
 
-export function downloadIntoTemporaryFile(url: string, directory?: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    downloadFile(url)
-      .then(res => {
-        let filePath: string;
-        if (directory) {
-          const filename = Math.random().toString();
-          filePath = join(directory, filename);
-        } else {
-          filePath = fileSync().name;
-        }
-        const fileStream = createWriteStream(filePath);
-        res.pipe(fileStream, {end: true});
+export function downloadIntoTemporaryFile(url: string[], cache?: Cache<string, string>): Promise<string> {
+  return (cache ?? downloadCache).getOrComputeAsync(url[0], () =>
+    new Promise<string>((resolve, reject) => {
+      if (url[0].startsWith('data:')) {
+        resolve(url[0]);
+        return;
+      }
+      downloadFile(url[0])
+        .then(res => {
+          const filePath = fileSync().name;
+          const fileStream = createWriteStream(filePath);
+          res.pipe(fileStream, {end: true});
 
-        fileStream.once('finish', () => resolve(filePath));
-      })
-      .catch(reject);
-  });
+          fileStream.once('finish', () => resolve(filePath));
+        })
+        .catch(reason => {
+          if (url.length > 1) {
+            downloadIntoTemporaryFile(url.filter((value, index) => index > 0), cache)
+              .then(resolve)
+              .catch(reject);
+          } else {
+            reject(reason);
+          }
+        });
+    }));
 }
 
-export function downloadIntoString(url: string): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
-    downloadFile(url)
-      .then(res => {
-        let body = '';
-        res.on('data', chunk => body += chunk);
-        res.once('end', () => resolve(body));
-      })
-      .catch(reject);
-  });
+export function downloadIntoSvg(url: string[], cache?: Cache<string, string>): Promise<string> {
+  if (url[0].startsWith('<svg ')) return Promise.resolve(url[0]);
+  return (cache ?? downloadCache).getOrComputeAsync(url[0], () =>
+    new Promise<string>((resolve, reject) => {
+      downloadFile(url[0])
+        .then(res => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.once('end', () => resolve(body));
+        })
+        .catch(reason => {
+          if (url.length > 1) {
+            return downloadIntoTemporaryFile(url.filter((value, index) => index > 0), cache);
+          } else {
+            reject(reason);
+          }
+        });
+    }));
 }
 
-function downloadFile(url: string): Promise<IncomingMessage> {
+function downloadFile(url: string): Promise<Readable> {
   let requestFunction: (url: string, callback: (res: IncomingMessage) => void) => ClientRequest;
   if (url.startsWith('http:')) {
     requestFunction = httpGet;

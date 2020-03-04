@@ -47,7 +47,7 @@ async function resolveFontUrl(url: string, name: string): Promise<string> {
   }
 
   try {
-    return cachedFontUrls[url] = await downloadIntoTemporaryFile(url);
+    return cachedFontUrls[url] = await downloadIntoTemporaryFile([url]);
   } catch (err) {
     throw new Error(`Error while downloading: ${name}: ${err.message}`);
   }
@@ -77,7 +77,7 @@ function createFontFromGoogleFonts(fontUrl: string): Promise<FontUrls> {
         return;
       }
     }
-    downloadIntoTemporaryFile(`https://fonts.google.com/download?family=${fontName}`)
+    downloadIntoTemporaryFile([`https://fonts.google.com/download?family=${fontName}`])
       .then(zipFilePath => {
         const result: FontUrls = {
           normal: '',
