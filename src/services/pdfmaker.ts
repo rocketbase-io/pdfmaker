@@ -1,6 +1,6 @@
 import {Request, Response} from 'express';
 import {Post, Service} from '../decorators';
-import {createReadStream, createWriteStream} from 'fs';
+import {createReadStream, createWriteStream, writeFileSync} from 'fs';
 import {Readable, Writable} from 'stream';
 import {downloadCache, downloadIntoSvg, downloadIntoTemporaryFile, temporaryFile} from '../utils';
 // @ts-ignore
@@ -9,6 +9,11 @@ import pdftk from 'node-pdftk';
 import PdfPrinter from 'pdfmake';
 import {defaultFonts, Fonts, resolveFont} from '../fonts';
 import {Cache} from '../cache';
+// @ts-ignore
+import FileType from 'file-type';
+
+
+const imagePlaceholder = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 async function replaceImages(options: any, fallbackImage: string | null, fallbackSvg: string | null, cache: Cache<string, string>) {
   if (typeof options !== 'object' || options === null) return;
@@ -25,9 +30,15 @@ async function replaceImages(options: any, fallbackImage: string | null, fallbac
         if (fallbackImage)
           urls.push(fallbackImage);
         // default a 1x1 transparent png
-        urls.push(process.env.IMAGE_FALLBACK ??
-          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
-        options.image = await downloadIntoTemporaryFile(urls, cache);
+        urls.push(process.env.IMAGE_FALLBACK ?? imagePlaceholder);
+        const imgPath = await downloadIntoTemporaryFile(urls, cache);
+        const typeResult = await FileType.fromFile(imgPath) ?? {mime: undefined, ext: undefined};
+        if (!typeResult.mime || /^image\/(jpeg|jpg|png)/.test( typeResult.mime)) {
+          options.image = imgPath;
+        } else {
+          console.warn(`requested image invalid type: ${typeResult?.mime} of image: ${options.image}`);
+          options.image = imagePlaceholder;
+        }
       } else if (key === 'svg') {
         const svg: string = options.svg;
         if (!svg.startsWith('<svg ')) {
@@ -70,13 +81,16 @@ function renderTemplate(template: any, variables: Record<string, any>): any {
 export class PdfService {
   @Post('/file')
   public async file(req: Request, res: Response) {
+    const hrstart = process.hrtime();
     try {
-      await this.generatePdf(req.body, res, () => this.pdfResponse(res, req.query.filename));
+      await this.generatePdf(req.body, res, () => this.pdfResponse(res, this.getFilename(req)));
     } catch (err) {
+      console.error('/file', err);
       res
         .status(400)
         .send({message: err.message});
     }
+    this.trackExecutionTime('/file', hrstart);
   }
 
   /*
@@ -84,6 +98,8 @@ export class PdfService {
    */
   @Post('/files')
   public async files(req: Request, res: Response) {
+    const hrstart = process.hrtime();
+
     const cleanup: (() => void)[] = [];
     try {
       const pdfFiles: string[] = [];
@@ -103,17 +119,28 @@ export class PdfService {
 
       cleanup.forEach(value => value());
 
-      this.pdfResponse(res, req.query.filename);
+      this.pdfResponse(res, this.getFilename(req));
       createReadStream(path)
         .pipe(res)
         .once('end', () => removeCallback())
         .once('error', () => removeCallback());
     } catch (err) {
+      console.error('/files', err);
       cleanup.forEach(value => value());
       res
         .status(400)
         .send({message: err.message});
     }
+    this.trackExecutionTime('/files', hrstart);
+  }
+
+  private getFilename(req: Request) {
+    return (typeof req.query!.filename === "string") ? req.query!.filename : 'pdf.pdf';
+  }
+
+  private trackExecutionTime(prefix: string, hrstart: any ) {
+    const hrend = process.hrtime(hrstart);
+    console.info(`${prefix} execution time: ${hrend[0]}s ${Math.round(hrend[1] / 1000000)}ms`);
   }
 
   public pdfResponse(res: Response, filename: string): void {
