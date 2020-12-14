@@ -1,11 +1,9 @@
-FROM node
+FROM node:lts
 
 RUN apt-get update && apt-get install -y pdftk
 
-# Create app directory
-WORKDIR /usr/src/app
-
-COPY . .
+ADD . /app
+WORKDIR /app
 
 RUN rm -rf node_modules
 RUN npm install
