@@ -6,8 +6,9 @@ ADD . /app
 WORKDIR /app
 
 RUN rm -rf node_modules
+RUN rm -rf dist
 RUN npm install
-RUN npm build
+RUN npm run build
 
 
 ENV PORT 3000
