@@ -15,6 +15,7 @@ export function temporaryFile(): Promise<TemporaryResult> {
   return new Promise<TemporaryResult>((resolve, reject) => {
     file((err, name, fd, removeCallback) => {
       if (err) {
+        console.error("could not create temporary file", err);
         reject(err);
       } else {
         resolve({path: name, removeCallback});
@@ -26,6 +27,7 @@ export function temporaryFile(): Promise<TemporaryResult> {
 export function downloadIntoTemporaryFile(url: string[], cache?: Cache<string, string>): Promise<string> {
   return (cache ?? downloadCache).getOrComputeAsync(url[0], () =>
     new Promise<string>((resolve, reject) => {
+      console.log("downloadIntoTemporaryFile ....", url[0]);
       if (url[0].startsWith('data:')) {
         resolve(url[0]);
         return;
@@ -39,6 +41,7 @@ export function downloadIntoTemporaryFile(url: string[], cache?: Cache<string, s
           fileStream.once('finish', () => resolve(filePath));
         })
         .catch(reason => {
+          console.log("could not download "+url[0], reason);
           if (url.length > 1) {
             downloadIntoTemporaryFile(url.filter((value, index) => index > 0), cache)
               .then(resolve)

@@ -1,6 +1,6 @@
 import {Request, Response} from 'express';
 import {Post, Service} from '../decorators';
-import {createReadStream, createWriteStream, writeFileSync} from 'fs';
+import {createReadStream, createWriteStream} from 'fs';
 import {Readable, Writable} from 'stream';
 import {downloadCache, downloadIntoSvg, downloadIntoTemporaryFile, temporaryFile} from '../utils';
 // @ts-ignore
@@ -116,7 +116,6 @@ export class PdfService {
       await pdftk
         .input(pdfFiles)
         .output(path);
-
       cleanup.forEach(value => value());
 
       this.pdfResponse(res, this.getFilename(req));
@@ -125,7 +124,7 @@ export class PdfService {
         .once('end', () => removeCallback())
         .once('error', () => removeCallback());
     } catch (err) {
-      console.error('/files', err);
+      console.trace('/files', err);
       cleanup.forEach(value => value());
       res
         .status(400)
@@ -155,30 +154,40 @@ export class PdfService {
   Concat single PDFs
    */
   public async generatePdf(options: any, output: Writable, beforeWrite: () => void): Promise<void> {
-    const imageCache = new Cache<string, string>(undefined, downloadCache, undefined, key => !key.startsWith('data:'));
-    await replaceImages(options, options.fallbackImage ?? null, options.fallbackSvg ?? null, imageCache);
-    if (options.pageNumber) {
-      const template = options.pageNumber;
-      options.footer = (currentPage: number, pageCount: number) => renderTemplate(template, {currentPage, pageCount});
-      delete options.pageNumber;
-    }
-    let fonts: Fonts = defaultFonts;
-    if (options.fonts) {
-      fonts = options.fonts;
-      for (const fontName of Object.keys(fonts)) {
-        fonts[fontName] = await resolveFont(fonts[fontName], fontName);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const imageCache = new Cache<string, string>(undefined, downloadCache, undefined, key => !key.startsWith('data:'));
+        await replaceImages(options, options.fallbackImage ?? null, options.fallbackSvg ?? null, imageCache);
+        if (options.pageNumber) {
+          const template = options.pageNumber;
+          options.footer = (currentPage: number, pageCount: number) => renderTemplate(template, {currentPage, pageCount});
+          delete options.pageNumber;
+        }
+        let fonts: Fonts = defaultFonts;
+        if (options.fonts) {
+          fonts = options.fonts;
+          for (const fontName of Object.keys(fonts)) {
+            fonts[fontName] = await resolveFont(fonts[fontName], fontName);
+          }
+          delete options.fonts;
+        }
+        const printer = new PdfPrinter(fonts);
+        const doc: Readable & { end(): void } = printer.createPdfKitDocument(options);
+        beforeWrite();
+        doc.pipe(output, {end: true});
+        doc.once('end', () => {
+          imageCache.transferIntoParent();
+          resolve();
+        });
+        doc.once('error', err => {
+          console.error('error creating pdf', err);
+          imageCache.transferIntoParent();
+          reject(err);
+        });
+        doc.end();
+      } catch (e) {
+        reject(e);
       }
-      delete options.fonts;
-    }
-    const printer = new PdfPrinter(fonts);
-    const doc: Readable & { end(): void } = printer.createPdfKitDocument(options);
-    beforeWrite();
-    doc.pipe(output, {end: true});
-    doc.once('end', () => imageCache.transferIntoParent());
-    doc.once('error', err => {
-      console.error('error creating pdf', err);
-      imageCache.transferIntoParent();
     });
-    doc.end();
   }
 }
