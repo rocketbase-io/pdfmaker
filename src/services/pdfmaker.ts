@@ -84,11 +84,11 @@ export class PdfService {
     const hrstart = process.hrtime();
     try {
       await this.generatePdf(req.body, res, () => this.pdfResponse(res, this.getFilename(req)));
-    } catch (err) {
+    } catch (err: any) {
       console.error('/file', err);
       res
         .status(400)
-        .send({message: err.message});
+        .send({message: err?.message});
     }
     this.trackExecutionTime('/file', hrstart);
   }
@@ -123,12 +123,12 @@ export class PdfService {
         .pipe(res)
         .once('end', () => removeCallback())
         .once('error', () => removeCallback());
-    } catch (err) {
+    } catch (err: any) {
       console.trace('/files', err);
       cleanup.forEach(value => value());
       res
         .status(400)
-        .send({message: err.message});
+        .send({message: err?.message});
     }
     this.trackExecutionTime('/files', hrstart);
   }

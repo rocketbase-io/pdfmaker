@@ -48,8 +48,8 @@ async function resolveFontUrl(url: string, name: string): Promise<string> {
 
   try {
     return cachedFontUrls[url] = await downloadIntoTemporaryFile([url]);
-  } catch (err) {
-    throw new Error(`Error while downloading: ${name}: ${err.message}`);
+  } catch (err: any) {
+    throw new Error(`Error while downloading: ${name}: ${err?.message}`);
   }
 }
 
