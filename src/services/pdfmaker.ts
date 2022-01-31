@@ -10,7 +10,7 @@ import PdfPrinter from 'pdfmake';
 import {defaultFonts, Fonts, resolveFont} from '../fonts';
 import {Cache} from '../cache';
 // @ts-ignore
-import FileType from 'file-type';
+import {fileTypeFromFile} from 'file-type';
 
 
 const imagePlaceholder = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
@@ -32,7 +32,7 @@ async function replaceImages(options: any, fallbackImage: string | null, fallbac
         // default a 1x1 transparent png
         urls.push(process.env.IMAGE_FALLBACK ?? imagePlaceholder);
         const imgPath = await downloadIntoTemporaryFile(urls, cache);
-        const typeResult = await FileType.fromFile(imgPath) ?? {mime: undefined, ext: undefined};
+        const typeResult = await fileTypeFromFile(imgPath) ?? {mime: undefined, ext: undefined};
         if (!typeResult.mime || /^image\/(jpeg|jpg|png)/.test( typeResult.mime)) {
           options.image = imgPath;
         } else {
@@ -84,11 +84,11 @@ export class PdfService {
     const hrstart = process.hrtime();
     try {
       await this.generatePdf(req.body, res, () => this.pdfResponse(res, this.getFilename(req)));
-    } catch (err) {
+    } catch (err: any) {
       console.error('/file', err);
       res
         .status(400)
-        .send({message: err.message});
+        .send({message: err?.message});
     }
     this.trackExecutionTime('/file', hrstart);
   }
@@ -123,12 +123,12 @@ export class PdfService {
         .pipe(res)
         .once('end', () => removeCallback())
         .once('error', () => removeCallback());
-    } catch (err) {
+    } catch (err: any) {
       console.trace('/files', err);
       cleanup.forEach(value => value());
       res
         .status(400)
-        .send({message: err.message});
+        .send({message: err?.message});
     }
     this.trackExecutionTime('/files', hrstart);
   }

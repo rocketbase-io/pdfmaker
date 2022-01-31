@@ -1,6 +1,6 @@
-import express = require("express");
+import {Router} from "express";
 
-export const services = express.Router();
+export const services = Router();
 export const ROUTES = Symbol("routes");
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "USE" | "PATCH" // TODO
 
@@ -16,7 +16,7 @@ export function Service(mountPoint: string): ClassDecorator {
   return (target => {
     const routes: IRouteConfig[] = (target.prototype as any)[ROUTES];
     const instance = new (target as any)();
-    const service = express.Router();
+    const service = Router();
 
     services.use(mountPoint, service);
 

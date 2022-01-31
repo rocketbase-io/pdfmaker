@@ -1,23 +1,22 @@
-language: go
-
+language: bash
+sudo: required
+services: docker
 env:
   global:
+    - DOCKER_REPO=rocketbaseio/pdfmaker
     - COMMIT=${TRAVIS_COMMIT::8}
-    - REPO=rocketbaseio/pdfmaker
-    - CGO_ENABLED=0
-    - GOOS=linux
-    - GOARCH=amd64
+    -
+deploy:
+  script: '
+  docker login -u $DOCKER_USER -p $DOCKER_PASS &&
+  docker buildx build \
+    --platform linux/amd64,linux/arm64,linux/arm/v7 \
+    -t "$DOCKER_REPO:multi-arch" \
+    --push \
+    .'
+  on:
+    branch: master
+    tags: true
 
-script:
-  - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then echo "latest"; else echo $TRAVIS_BRANCH; fi`
-  - docker build -t "$REPO:$TAG" -f Dockerfile .
-
-after_success:
-  - docker login -u $DOCKER_USER -p $DOCKER_PASS
-  - if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then
-    docker tag "$REPO:$TAG" "$REPO:$TRAVIS_BUILD_NUMBER";
-    docker push "$REPO:$TRAVIS_BUILD_NUMBER";
-    fi
-  - docker push "$REPO:$TAG"
 notifications:
-  email: false
+  email: true
