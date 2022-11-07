@@ -6,7 +6,10 @@ import {get as httpsGet} from "https";
 import PdfPrinter from "pdfmake";
 
 export async function generatePdf(docDefinition : any): Promise<Buffer> {
+
+    await generatePageNumbers(docDefinition);
     await replaceImages(docDefinition);
+
     return new Promise((resolve) => {
         const fonts = {
             Roboto: {
@@ -78,7 +81,7 @@ function downloadFile(url: string): Promise<Readable> {
 
 /***Loops recursively through the doc to find every image url and replace it
  * with an image path which is previously downloaded and temporally saved*/
-export const replaceImages = async (doc: any) => {
+async function replaceImages(doc: any) {
 
     if (typeof doc !== 'object' || doc === null) return;
 
@@ -96,4 +99,22 @@ export const replaceImages = async (doc: any) => {
             }
         }
     }
-};
+}
+
+function generatePageNumbers(doc: any) {
+    if(doc.pageNumber === undefined) return;
+    const template = doc.pageNumber;
+
+    //TODO: More styling options -> convert input to its own style dictionary
+    doc.footer = (currentPage : Number, pageCount : Number) : Object => {
+        return [
+            {
+                text: template.text.replace("$currentPage$", currentPage).replace("$pageCount$", pageCount),
+                //Checks for alignment property -> defaults to "center" on wrong/none input
+                alignment: ["center", "right", "left"].includes(template.alignment) ? template.alignment : "center"
+            }
+        ]
+    }
+
+    delete doc.pageNumber;
+}
