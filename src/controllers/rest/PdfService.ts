@@ -5,9 +5,9 @@ import {ClientRequest, get as httpGet, IncomingMessage} from "http";
 import {get as httpsGet} from "https";
 import PdfPrinter from "pdfmake";
 
-export function generatePdf(docDefinition : any): Promise<Buffer> {
+export async function generatePdf(docDefinition : any): Promise<Buffer> {
+    await replaceImages(docDefinition);
     return new Promise((resolve) => {
-
         const fonts = {
             Roboto: {
                 normal: 'assets/fonts/Roboto-Italic.ttf',
