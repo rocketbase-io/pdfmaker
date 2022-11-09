@@ -15,9 +15,10 @@ export async function generatePdf(docDefinition : any): Promise<Buffer> {
     return new Promise((resolve) => {
         const fonts = {
             Roboto: {
-                normal: 'assets/fonts/Roboto-Italic.ttf',
-                bold: 'assets/fonts/Roboto-Italic.ttf',
-                italics: 'assets/fonts/Roboto-Italic.ttf'
+                normal: 'assets/fonts/Roboto-Regular.ttf',
+                bold: 'assets/fonts/Roboto-Medium.ttf',
+                italics: 'assets/fonts/Roboto-Italic.ttf',
+                bolditalics: 'assets/fonts/Roboto-MediumItalic'
             }
         };
 
