@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a279d9d7-edbb-48cd-8acd-c313e8cf08c6" name="Changes" comment="refactor: moved util function 'replaceImages' to the service file">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="872a447a-0df2-48d7-8023-a43b28da8260" name="Changes" comment="feat: merge multiple pdfs via an array">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/rest/PdfController.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/rest/PdfController.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/rest/PdfService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/rest/PdfService.ts" afterDir="false" />
     </list>
@@ -28,16 +31,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "nodejs_package_manager_path": "npm",
-    "ts.external.directory.path": "/Users/melwinkramer/RocketBase/pdfmaker/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/melwinkramer/RocketBase/pdfmaker/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -123,6 +126,7 @@
     <MESSAGE value="Ts.ED generated files" />
     <MESSAGE value=".gitignore changes" />
     <MESSAGE value="refactor: moved util function 'replaceImages' to the service file" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: moved util function 'replaceImages' to the service file" />
+    <MESSAGE value="feat: merge multiple pdfs via an array" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: merge multiple pdfs via an array" />
   </component>
 </project>

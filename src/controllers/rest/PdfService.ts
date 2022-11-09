@@ -4,6 +4,8 @@ import {Readable} from "stream";
 import {ClientRequest, get as httpGet, IncomingMessage} from "http";
 import {get as httpsGet} from "https";
 import PdfPrinter from "pdfmake";
+import {ValidationError} from "@tsed/platform-params";
+import PdfMerger from 'pdf-merger-js';
 
 export async function generatePdf(docDefinition : any): Promise<Buffer> {
 
@@ -36,6 +38,18 @@ export async function generatePdf(docDefinition : any): Promise<Buffer> {
 
         doc.end();
     })
+}
+
+export async function generateMultiplePdfs(docs : [any]) : Promise<Buffer> {
+    let pdfMerger = new PdfMerger();
+
+    if(!Array.isArray(docs)) throw new ValidationError("Input has to be an array.");
+    for(let doc of docs) {
+        console.log(doc);
+        await pdfMerger.add(await generatePdf(doc));
+    }
+
+    return pdfMerger.saveAsBuffer();
 }
 
 /*** Saves image to a temporary file */
@@ -77,7 +91,6 @@ function downloadFile(url: string): Promise<Readable> {
         }).on('error', reject);
     });
 }
-
 
 /***Loops recursively through the doc to find every image url and replace it
  * with an image path which is previously downloaded and temporally saved*/

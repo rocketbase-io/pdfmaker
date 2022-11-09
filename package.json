@@ -41,6 +41,7 @@
     "dotenv-flow": "^3.2.0",
     "express": "^4.18.2",
     "method-override": "^3.0.0",
+    "pdf-merger-js": "^4.1.2",
     "pdfmake": "^0.2.6",
     "stream-to-array": "^2.3.0",
     "tmp": "^0.2.1"
