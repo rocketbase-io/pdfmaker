@@ -15,7 +15,7 @@ describe("API", () => {
 
     describe("POST /rest/pdf", ()=>{
        it("creates an empty pdf", async () => {
-           await request.post("/rest/pdf")
+           request.post("/rest/pdf")
                .send({})
                .expect(200)
                .expect('Content-Type', /pdf/);
@@ -24,7 +24,7 @@ describe("API", () => {
 
     describe("POST /rest/pdf/merge", ()=>{
         it("creates a merged pdf ", async () => {
-            await request.post("/rest/pdf/merge")
+            request.post("/rest/pdf/merge")
                 .send({})
                 .expect(200)
                 .expect('Content-Type', /pdf/);
