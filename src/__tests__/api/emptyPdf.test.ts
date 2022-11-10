@@ -23,11 +23,13 @@ describe("API", () => {
     });
 
     describe("POST /rest/pdf/merge", ()=>{
-        it("creates a merged pdf ", async () => {
+        it("creates an empty merged pdf ", async () => {
             await request.post("/rest/pdf/merge")
                 .send({})
                 .expect(200)
                 .expect('Content-Type', /pdf/);
         })
     });
+
+
 })
