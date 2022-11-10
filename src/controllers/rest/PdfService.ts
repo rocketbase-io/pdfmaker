@@ -46,7 +46,6 @@ export async function generateMultiplePdfs(docs : [any]) : Promise<Buffer> {
 
     if(!Array.isArray(docs)) throw new ValidationError("Input has to be an array.");
     for(let doc of docs) {
-        console.log(doc);
         await pdfMerger.add(await generatePdf(doc));
     }
 
@@ -62,7 +61,6 @@ async function imageToDataUrl(url: string): Promise<string> {
             res.pipe(fileStream, {end: true});
 
             fileStream.once('finish', () => {
-                console.log(filePath);
                 resolve(filePath)
             });
         }).catch(error => {
@@ -79,7 +77,7 @@ function downloadFile(url: string): Promise<Readable> {
     } else if (url.startsWith('https:')) {
         requestFunction = httpsGet;
     } else {
-        return Promise.reject(new Error('Invalid download url: ' + url));
+        throw new ValidationError("Image url doesnt start with http:// or https://");
     }
 
     return new Promise<IncomingMessage>((resolve, reject) => {
@@ -106,7 +104,10 @@ async function replaceImages(doc: any) {
     } else if (typeof doc === 'object' && !!doc) {
         for (let key in doc) {
             if (key === 'image') {
-                doc[key] = await imageToDataUrl(doc[key]);
+                doc[key] = await imageToDataUrl(doc[key])
+                    .catch(error => {
+                        throw new ValidationError("Couldn't resolve image(s). " + error);
+                    });
                 //DEBUG: console.log("Image replaced!");
             } else {
                 await replaceImages(doc[key]);
