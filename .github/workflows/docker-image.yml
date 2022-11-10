@@ -2,10 +2,9 @@ name: Docker Image CI
 
 on:
   workflow_run:
-    branches:
-      - reworked
-    workflows: ["Node CI Build & Test"]
-    types: [completed]
+    workflows: ["CI Test"]
+    types:
+      - completed
 
 jobs:
   build:

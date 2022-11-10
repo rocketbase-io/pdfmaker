@@ -1,4 +1,4 @@
-name: Node CI Build & Test
+name: CI Test
 
 on:
   push:
