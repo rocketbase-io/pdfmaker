@@ -39,6 +39,8 @@ jspm_packages/
 #Build directory
 dist/
 
+.idea
+
 # TypeScript v1 declaration files
 typings/
 
