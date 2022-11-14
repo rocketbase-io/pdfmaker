@@ -8,8 +8,8 @@ Docker service of [pdfmake](http://pdfmake.org/) - with pdf merge feature by use
 
 # API
 There are two API endpoints:
-- [POST] /rest/pdf requires a JSON object
-- [POST] /rest/pdf/merge requires an array of JSON objects
+- [POST] /pdf/file requires a JSON object
+- [POST] /pdf/files requires an array of JSON objects
 
 
 For documentation to the JSON objects which are describe the content of the PDFs, [look here at the pdfmake documentation](https://pdfmake.github.io/docs/).

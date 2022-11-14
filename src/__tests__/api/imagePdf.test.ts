@@ -12,9 +12,9 @@ describe("API", () => {
 
     afterEach(PlatformTest.reset);
 
-    describe("POST /rest/pdf", () => {
+    describe("POST /pdf/file", () => {
         it("creates an pdf with page numbers and 3 images", async () => {
-            await request.post("/rest/pdf")
+            await request.post("/pdf/file")
                 .send({
                     "content": [
                         {
@@ -37,9 +37,9 @@ describe("API", () => {
         });
     })
 
-    describe("POST /rest/pdf/merge", () => {
+    describe("POST /pdf/files", () => {
         it("merges two pdfs with three pictures each", async () => {
-            await request.post("/rest/pdf/merge")
+            await request.post("/pdf/files")
                 .send([
                     {"content": [
                         {"image": "https://www.pngmart.com/files/13/Pokemon-Charmander-PNG-Pic.png"},
@@ -57,9 +57,9 @@ describe("API", () => {
         });
     })
 
-    describe("POST /rest/pdf", ()=>{
+    describe("POST /pdf/file", ()=>{
         it("creates an pdf with page numbers and 3 images", async () => {
-            await request.post("/rest/pdf")
+            await request.post("/pdf/file")
                 .send({
                     "content": [
                         {

@@ -13,18 +13,18 @@ describe("API", () => {
     afterEach(PlatformTest.reset);
 
 
-    describe("POST /rest/pdf", ()=>{
+    describe("POST /pdf/file", ()=>{
        it("creates an empty pdf", async () => {
-           await request.post("/rest/pdf")
+           await request.post("/pdf/file")
                .send({})
                .expect(200)
                .expect('Content-Type', /pdf/);
        })
     });
 
-    describe("POST /rest/pdf/merge", ()=>{
+    describe("POST /pdf/files", ()=>{
         it("creates an empty merged pdf ", async () => {
-            await request.post("/rest/pdf/merge")
+            await request.post("/pdf/files")
                 .send({})
                 .expect(200)
                 .expect('Content-Type', /pdf/);

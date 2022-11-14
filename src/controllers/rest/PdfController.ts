@@ -9,12 +9,12 @@ import {generateMultiplePdfs, generatePdf} from "./PdfService";
 
 @Controller('/pdf')
 export class PdfController {
-    @Post("/")
+    @Post("/file")
     @ContentType("application/pdf")
     async createPdf(@BodyParams() doc: Object): Promise<Buffer> {
         return generatePdf(doc);
     }
-    @Post("/merge")
+    @Post("/files")
     @ContentType("application/pdf")
     async mergePdfs(@BodyParams() docs :  [Object]) : Promise<Buffer> {
         return generateMultiplePdfs(docs);
