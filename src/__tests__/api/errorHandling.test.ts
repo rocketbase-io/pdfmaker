@@ -7,6 +7,7 @@ describe("API", () => {
 
     beforeEach(PlatformTest.bootstrap(Server));
     beforeEach(() => {
+        jest.setTimeout(20000);
         request = SuperTest(PlatformTest.callback());
     })
 
