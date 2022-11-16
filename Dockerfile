@@ -1,18 +1,47 @@
-FROM node:14
+###############################################################################
+###############################################################################
+##                      _______ _____ ______ _____                           ##
+##                     |__   __/ ____|  ____|  __ \                          ##
+##                        | | | (___ | |__  | |  | |                         ##
+##                        | |  \___ \|  __| | |  | |                         ##
+##                        | |  ____) | |____| |__| |                         ##
+##                        |_| |_____/|______|_____/                          ##
+##                                                                           ##
+## description     : Dockerfile for TsED Application                         ##
+## author          : TsED team                                               ##
+## date            : 2022-03-05                                              ##
+## version         : 2.0                                                     ##
+##                                                                           ##
+###############################################################################
+###############################################################################
+ARG NODE_VERSION=16.13.1
 
-RUN apt-get update && apt-get install -y pdftk
+FROM node:${NODE_VERSION}-alpine as build
+WORKDIR /opt
 
-ADD . /app
-WORKDIR /app
+COPY package.json package-lock.json tsconfig.json tsconfig.compile.json .barrelsby.json ./
 
-RUN rm -rf node_modules
-RUN rm -rf dist
+RUN npm install
+
+COPY ./assets ./assets
+COPY ./src ./src
+
+FROM node:${NODE_VERSION}-alpine as runtime
+ENV WORKDIR /opt
+WORKDIR $WORKDIR
+
+RUN apk update && apk add build-base git curl
+RUN npm install -g pm2
+
+COPY --from=build /opt .
+
 RUN npm install
 RUN npm run build
 
+COPY processes.config.js .
 
-ENV PORT 3000
-ENV HOST=0.0.0.0
+EXPOSE 8081
+ENV PORT 8081
+ENV NODE_ENV production
 
-CMD [ "node", "./dist/server.js" ]
-
+CMD ["pm2-runtime", "start", "processes.config.js", "--env", "production"]
