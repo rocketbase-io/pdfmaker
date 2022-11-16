@@ -1,8 +1,8 @@
 # pdfmaker
 
-![logo](https://github.com/rocketbase-io/pdfmaker/raw/master/assets/pdf-maker.svg)
+![logo](./assets/pdf-maker.svg)
 
-[![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://cloud.docker.com/repository/docker/rocketbaseio/pdfmaker)
+[![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://hub.docker.com/repository/docker/rocketbaseio/pdfmaker)
 
 Docker service of [pdfmake](http://pdfmake.org/) - with pdf merge feature by use of [pdf-merger-js](https://www.npmjs.com/package/pdf-merger-js).
 

@@ -1,19 +1,51 @@
-import dotenv from "dotenv";
-dotenv.config();
-import express from "express";
-import {services} from "./decorators";
-import * as middleware from "./middleware";
+import {join} from "path";
+import {Configuration, Inject} from "@tsed/di";
+import {PlatformApplication} from "@tsed/common";
+import "@tsed/platform-express"; // /!\ keep this import
+import bodyParser from "body-parser";
+import compress from "compression";
+import cookieParser from "cookie-parser";
+import methodOverride from "method-override";
+import cors from "cors";
+import "@tsed/ajv";
+import {config} from "./config/index";
+import * as rest from "./controllers/rest/index";
 
-import "./services"
+@Configuration({
+  ...config,
+  acceptMimes: ["application/json"],
+  httpPort: process.env.PORT || 8083,
+  httpsPort: false, // CHANGE
+  componentsScan: false,
+  mount: {
+    "/": [
+      ...Object.values(rest)
+    ]
+  },
+  middlewares: [
+    cors(),
+    cookieParser(),
+    compress({}),
+    methodOverride(),
+    bodyParser.json(),
+    bodyParser.urlencoded({
+      extended: true
+    })
+  ],
+  views: {
+    root: join(process.cwd(), "../views"),
+    extensions: {
+      ejs: "ejs"
+    }
+  },
+  exclude: [
+    "**/*.spec.ts"
+  ]
+})
+export class Server {
+  @Inject()
+  protected app: PlatformApplication;
 
-
-export const app = express();
-
-Object.values(middleware).forEach(one => app.use(one));
-app.use(services);
-
-const {PORT = 3000} = process.env;
-
-app.listen(PORT, () =>
-  console.log(`Server is running http://localhost:${PORT}...`)
-);
+  @Configuration()
+  protected settings: Configuration;
+}
