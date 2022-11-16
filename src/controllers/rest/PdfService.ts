@@ -52,6 +52,24 @@ export async function generateMultiplePdfs(docs : [any]) : Promise<Buffer> {
     return pdfMerger.saveAsBuffer();
 }
 
+async function svgToDataUrl(url: string) : Promise<string> {
+    if (url.startsWith('<svg ')) return Promise.resolve(url);
+    return new Promise((resolve, reject) => {
+        downloadFile(url).then((res)=> {
+            let dataUrl = '';
+            res.on('data', chunk => dataUrl += chunk);
+            res.once('end', () => {
+                console.log(dataUrl);
+                if (!dataUrl.startsWith('<svg ')) reject(new ValidationError("The file isn't auf type svg. URL: " + url));
+                resolve(dataUrl)
+            });
+            res.on('error', error => reject(error));
+        }).catch(error => {
+            reject(error);
+        });
+    });
+}
+
 /*** Saves image to a temporary file */
 async function imageToDataUrl(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -61,7 +79,7 @@ async function imageToDataUrl(url: string): Promise<string> {
             res.pipe(fileStream, {end: true});
 
             fileStream.once('finish', () => {
-                resolve(filePath)
+                resolve(filePath);
             });
         }).catch(error => {
            reject(error);
@@ -108,8 +126,12 @@ async function replaceImages(doc: any) {
                     .catch(error => {
                         throw new ValidationError("Couldn't resolve image(s). " + error);
                     });
-                //DEBUG: console.log("Image replaced!");
-            } else {
+            }else if(key === 'svg') {
+                doc[key] = await svgToDataUrl(doc[key])
+                    .catch(error => {
+                        throw new ValidationError("Couldn't resolve svg(s). " + error);
+                    });
+            }else {
                 await replaceImages(doc[key]);
             }
         }
