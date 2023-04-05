@@ -4,7 +4,7 @@ import {ContentType, Post} from "@tsed/schema";
 import {BodyParams} from "@tsed/platform-params";
 
 /*Service*/
-import {generateMultiplePdfs, generatePdf} from "./PdfService";
+import {generateMultiplePdfs, generatePdf} from "./pdf-service";
 
 
 @Controller('/pdf')

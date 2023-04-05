@@ -1,6 +1,6 @@
 import {PlatformTest} from "@tsed/common";
 import SuperTest from "supertest";
-import {Server} from "../../Server";
+import {Server} from "../../server";
 
 jest.setTimeout(60000);
 
