@@ -49,7 +49,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: rocketbase/pdfmaker:${{ github.event.inputs.releaseversion }}
+          tags: rocketbaseio/pdfmaker:${{ github.event.inputs.releaseversion }}
 
       - name: Create GitHub Release
         id: create_release
