@@ -3,4 +3,3 @@
  */
 
 export * from "./pdf-controller";
-export * from "./pdf-service";

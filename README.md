@@ -21,24 +21,27 @@ Beside the default fonts: Times, Helvetica, Courier, Symbol the follow list of f
 - Lato
 - OpenSans
 - Poppins
+- Merriweather
 
 ## Image URLs
-External images can be used via a URL:
+Also fallback URLs are supported. These urls can either be given per image or global on the object. Example:
 
 ```json
 {
   "content": [
     {
-      "image": "https://example.com/img/logo.png"
+      "image": "https://example.com/img/logo.png",
+      "fallback": "https://example.com/img/logo-placeholder.png"
     }
-  ]
+  ],
+  "fallbackImage": "https://example.com/img/placeholder.png"
 }
 ```
-**Note:** Fallbacks are not supported.
 
 **Note:** Only PNGs and JPGs are supported.
+**Note:** When the download of an image + fallback fails the service will fallback to 1x1 purple png
 
-**Note:** When the download of an image fails the service will break with 400.
+
 ## SVG URLs
 Downloading SVGs from urls is supported. It is nearly the same as Image URLs expect that it is also possible to give the SVG as string. Example:
 ```json
@@ -55,8 +58,7 @@ Downloading SVGs from urls is supported. It is nearly the same as Image URLs exp
 ```
 
 **Note:** Fallbacks are not supported.
-
-**Note:** When the download of an SVG fails, the service will break with 400.
+**Note:** When the download of an SVG fails, the service will fallback to 1x1 purple png
 
 ## Page numbers
 To add a page number on at the footer of each page, you can use this property. This property accepts an element for pdfmake.

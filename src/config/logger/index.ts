@@ -1,4 +1,4 @@
-import {$log, PlatformLoggerSettings} from "@tsed/common";
+import {$log, Logger, PlatformLoggerSettings} from "@tsed/common";
 import {isProduction} from "../envs/index";
 
 if (isProduction) {
