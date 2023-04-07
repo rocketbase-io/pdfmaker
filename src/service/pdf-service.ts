@@ -6,8 +6,6 @@ import {get as httpsGet} from "https";
 import PdfPrinter from "pdfmake";
 import {ValidationError} from "@tsed/platform-params";
 import PdfMerger from 'pdf-merger-js';
-import {fileTypeFromStream, FileTypeResult} from "file-type/core";
-import {Readable as ReadableStream} from "node:stream";
 import {Inject} from "@tsed/di";
 import {Logger} from "@tsed/common";
 
