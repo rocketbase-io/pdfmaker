@@ -16,9 +16,33 @@ export async function generatePdf(docDefinition : any): Promise<Buffer> {
         const fonts = {
             Roboto: {
                 normal: 'assets/fonts/Roboto-Regular.ttf',
-                bold: 'assets/fonts/Roboto-Medium.ttf',
+                bold: 'assets/fonts/Roboto-Bold.ttf',
                 italics: 'assets/fonts/Roboto-Italic.ttf',
-                bolditalics: 'assets/fonts/Roboto-MediumItalic'
+                bolditalics: 'assets/fonts/Roboto-BoldItalic.ttf'
+            },
+            JosefinSans: {
+                normal: 'assets/fonts/JosefinSans-Regular.ttf',
+                bold: 'assets/fonts/JosefinSans-Bold.ttf',
+                italics: 'assets/fonts/JosefinSans-Italic.ttf',
+                bolditalics: 'assets/fonts/JosefinSans-BoldItalic.ttf'
+            },
+            Lato: {
+                normal: 'assets/fonts/Lato-Regular.ttf',
+                bold: 'assets/fonts/Lato-Bold.ttf',
+                italics: 'assets/fonts/Lato-Italic.ttf',
+                bolditalics: 'assets/fonts/Lato-BoldItalic.ttf'
+            },
+            OpenSans: {
+                normal: 'assets/fonts/OpenSans-Regular.ttf',
+                bold: 'assets/fonts/OpenSans-Bold.ttf',
+                italics: 'assets/fonts/OpenSans-Italic.ttf',
+                bolditalics: 'assets/fonts/OpenSans-BoldItalic.ttf'
+            },
+            Poppins: {
+                normal: 'assets/fonts/Poppins-Regular.ttf',
+                bold: 'assets/fonts/Poppins-Bold.ttf',
+                italics: 'assets/fonts/Poppins-Italic.ttf',
+                bolditalics: 'assets/fonts/Poppins-BoldItalic.ttf'
             }
         };
 

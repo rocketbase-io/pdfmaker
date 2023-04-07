@@ -14,6 +14,14 @@ There are two API endpoints:
 
 For documentation to the JSON objects which are describe the content of the PDFs, [look here at the pdfmake documentation](https://pdfmake.github.io/docs/).
 
+## Fonts
+Beside the default fonts: Times, Helvetica, Courier, Symbol the follow list of fonts is installed too:
+- Roboto
+- JosefinSans
+- Lato
+- OpenSans
+- Poppins
+
 ## Image URLs
 External images can be used via a URL:
 
